@@ -33,7 +33,13 @@ export const authOptions: AuthOptions = {
             { method: "POST" }
           );
           const json = await res.json();
-          return { tokens: json };
+          return {
+            tokens: {
+              access_token: json.access_token,
+              refresh_token: json.refresh_token,
+              expires_at: json.expires_in,
+            },
+          };
         },
       },
       userinfo: "https://api.figma.com/v1/me",
