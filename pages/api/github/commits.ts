@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getToken } from "next-auth/jwt";
-import db from "../../../lib/prismadb";
-import { Octokit, App } from "octokit";
+import { Octokit } from "octokit";
 import { z } from "zod";
+import { getGitHubToken } from "../../../helpers/api/githubToken";
 
 const Query = z.object({
   owner: z.string(),
@@ -20,29 +19,13 @@ export default async function handler(
   }
   const query = queryParsed.data;
 
-  const token = await getToken({
-    req,
-  });
-  if (!token) {
+  const accessToken = await getGitHubToken(req);
+  if (!accessToken) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  const account = await db.account.findFirst({
-    where: {
-      userId: token.sub,
-      provider: "github",
-    },
-  });
-
-  if (!account?.access_token) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
-  const octokit = new Octokit({
-    auth: account?.access_token,
-  });
+  const octokit = new Octokit({ auth: accessToken });
   const result = await octokit.request("GET /repos/{owner}/{repo}/commits", {
     owner: query.owner,
     repo: query.repo,
