@@ -17,5 +17,29 @@ export const authOptions: AuthOptions = {
       clientSecret: process.env.FIGMA_SECRET as string,
     }),
   ],
+  callbacks: {
+    // https://github.com/nextauthjs/next-auth/issues/5924
+    async signIn({ account }) {
+      if (account?.provider !== "figma") return true;
+
+      const dbAccount = await prisma.account.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: "figma",
+            providerAccountId: account.providerAccountId,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (!dbAccount) return true;
+
+      await prisma.account.update({
+        where: { id: dbAccount.id },
+        data: account,
+      });
+      return true;
+    },
+  },
 };
 export default NextAuth(authOptions);
