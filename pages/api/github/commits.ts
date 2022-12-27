@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getToken } from "next-auth/jwt";
 import db from "../../../lib/prismadb";
+import { Octokit, App } from "octokit";
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,17 +23,17 @@ export default async function handler(
     },
   });
 
-  const fetchRes = await fetch(
-    "https://api.github.com/repos/" + req.query.repo + "/commits",
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: "Bearer " + account?.access_token,
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    }
-  );
-  const json = await fetchRes.json();
-  res.json(json);
+  if (!account?.access_token) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const octokit = new Octokit({
+    auth: account?.access_token,
+  });
+  const result = await octokit.request(`GET /repos/${req.query.repo}/commits`, {
+    owner: "OWNER",
+    repo: "REPO",
+  });
+  res.json(result.data);
 }
