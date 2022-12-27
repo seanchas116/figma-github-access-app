@@ -2,58 +2,20 @@ import NextAuth, { AuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "../../../lib/prismadb";
+import FigmaProvider from "../../../lib/auth/figma";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
-  // Configure one or more authentication providers
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID as string,
       clientSecret: process.env.GITHUB_SECRET as string,
     }),
-    // ...add more providers here
-    {
-      id: "figma",
-      name: "Figma",
-      type: "oauth",
-      authorization: {
-        url: "https://www.figma.com/oauth",
-        params: {
-          scope: "file_read",
-          response_type: "code",
-        },
-      },
-      token: {
-        url: "https://www.figma.com/api/oauth/token",
-        async request(context) {
-          const provider = context.provider;
-          const res = await fetch(
-            `https://www.figma.com/api/oauth/token?client_id=${provider.clientId}&client_secret=${provider.clientSecret}&redirect_uri=${provider.callbackUrl}&code=${context.params.code}&grant_type=authorization_code`,
-            { method: "POST" }
-          );
-          const json = await res.json();
-          return {
-            tokens: {
-              access_token: json.access_token,
-              refresh_token: json.refresh_token,
-              expires_at: json.expires_in,
-            },
-          };
-        },
-      },
-      userinfo: "https://api.figma.com/v1/me",
-      profile(profile) {
-        return {
-          id: profile.id,
-          name: `${profile.handle}`,
-          email: profile.email,
-          image: profile.img_url,
-        };
-      },
-      clientId: process.env.FIGMA_ID,
-      clientSecret: process.env.FIGMA_SECRET,
-    },
+    FigmaProvider({
+      clientId: process.env.FIGMA_ID as string,
+      clientSecret: process.env.FIGMA_SECRET as string,
+    }),
   ],
 };
 export default NextAuth(authOptions);
