@@ -20,12 +20,14 @@ export const authOptions: AuthOptions = {
   callbacks: {
     // https://github.com/nextauthjs/next-auth/issues/5924
     async signIn({ account }) {
-      if (account?.provider !== "figma") return true;
+      if (!account) {
+        return true;
+      }
 
       const dbAccount = await prisma.account.findUnique({
         where: {
           provider_providerAccountId: {
-            provider: "figma",
+            provider: account.provider,
             providerAccountId: account.providerAccountId,
           },
         },
