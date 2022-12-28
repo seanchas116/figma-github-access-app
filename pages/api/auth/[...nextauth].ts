@@ -1,11 +1,11 @@
 import NextAuth, { AuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "../../../lib/prismadb";
 import FigmaProvider from "../../../lib/auth/figma";
+import db from "../../../lib/prismadb";
 
 export const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
   providers: [
     GithubProvider({
@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
         return true;
       }
 
-      const dbAccount = await prisma.account.findUnique({
+      const dbAccount = await db.account.findUnique({
         where: {
           provider_providerAccountId: {
             provider: account.provider,
@@ -36,7 +36,7 @@ export const authOptions: AuthOptions = {
 
       if (!dbAccount) return true;
 
-      await prisma.account.update({
+      await db.account.update({
         where: { id: dbAccount.id },
         data: account,
       });
