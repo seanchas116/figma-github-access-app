@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
 import { z } from "zod";
-import { getGitHubToken } from "../../../helpers/api/githubToken";
+import { getGitHubToken } from "../../../helpers/api/auth";
 
 const Query = z.object({
   owner: z.string(),

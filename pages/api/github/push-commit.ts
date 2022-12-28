@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
 import { z } from "zod";
-import { getGitHubToken } from "../../../helpers/api/gitHubToken";
+import { getGitHubToken } from "../../../helpers/api/auth";
 
 const Query = z.object({
   owner: z.string(),
@@ -59,7 +59,7 @@ export default async function handler(
       base_tree: currentCommit.tree.sha,
       tree: [
         {
-          path: "file.txt",
+          path: "push-demo/file.txt",
           mode: "100644",
           type: "blob",
           content: "Hello World: " + time,
