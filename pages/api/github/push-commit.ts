@@ -59,10 +59,16 @@ export default async function handler(
       base_tree: currentCommit.tree.sha,
       tree: [
         {
-          path: "push-demo/file.txt",
+          path: "push-demo/file1.txt",
           mode: "100644",
           type: "blob",
-          content: "Hello World: " + time,
+          content: "File 1: " + time,
+        },
+        {
+          path: "push-demo/file2.txt",
+          mode: "100644",
+          type: "blob",
+          content: "File 2: " + time,
         },
       ],
     })
@@ -74,7 +80,7 @@ export default async function handler(
     await octokit.request("POST /repos/{owner}/{repo}/git/commits", {
       owner: query.owner,
       repo: query.repo,
-      message: "Hello World: " + time,
+      message: "Commit Test: " + time,
       tree: tree.sha,
       parents: [currentCommit.sha],
     })
